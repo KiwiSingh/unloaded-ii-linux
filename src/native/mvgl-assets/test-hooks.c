@@ -29,7 +29,7 @@ int main(void) {
     CHECK(file != INVALID_HANDLE_VALUE);
     DWORD written;
     CHECK(WriteFile(file, "DDS!", 4, &written, NULL) && written == 4); CloseHandle(file);
-    CHECK(snapshot("asset-root", "", 0) && assets.count == 1);
+    CHECK(snapshot(resolved, "", 0) && assets.count == 1);
     file = CreateFileA("asset-root\\app_0\\images\\eyes.dds", GENERIC_WRITE, 0, NULL, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     CHECK(file != INVALID_HANDLE_VALUE);
     CHECK(WriteFile(file, "changed", 7, &written, NULL) && written == 7); CloseHandle(file);

@@ -135,6 +135,10 @@ static int resolve_asset_root(const char *selected, char resolved[4096]) {
     int ok = GetFileInformationByHandle(directory, &info) &&
         (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && length && length < 4096;
     CloseHandle(directory);
+    // Wine exposes the DOS path with an extended prefix but rejects that prefix
+    // in FindFirstFileA. Keep the same drive/path using normal DOS syntax.
+    if (ok && length >= 7 && !strncmp(resolved, "\\\\?\\", 4) && resolved[5] == ':' && resolved[6] == '\\')
+        memmove(resolved, resolved + 4, length - 3);
     return ok;
 }
 

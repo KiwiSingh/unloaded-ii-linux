@@ -19,7 +19,10 @@ __declspec(noinline) intptr_t fake_size(intptr_t a, const char *path, int64_t *s
 int main(void) {
     InitializeASI(); // A synthetic executable must fail the production activation gate.
     CHECK(assets.count == 0 && original_read == NULL && original_size == NULL);
+    char resolved[4096];
+    CHECK(!resolve_asset_root("missing-root", resolved));
     CHECK(CreateDirectoryA("asset-root", NULL));
+    CHECK(resolve_asset_root("asset-root", resolved));
     CHECK(CreateDirectoryA("asset-root\\app_0", NULL));
     CHECK(CreateDirectoryA("asset-root\\app_0\\images", NULL));
     HANDLE file = CreateFileA("asset-root\\app_0\\images\\eyes.dds", GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);

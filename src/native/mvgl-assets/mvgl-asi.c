@@ -122,9 +122,25 @@ static unsigned char *find_code(HMODULE module, const unsigned char *pattern, co
     return found;
 }
 
+// Follow the explicitly selected root once, then snapshot the resolved directory.
+// The guest owns and validates the stable profile link. Child links remain blocked.
+static int resolve_asset_root(const char *selected, char resolved[4096]) {
+    HANDLE directory = CreateFileA(selected, FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+        OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    if (directory == INVALID_HANDLE_VALUE) return 0;
+    BY_HANDLE_FILE_INFORMATION info;
+    DWORD length = GetFinalPathNameByHandleA(directory, resolved, 4096,
+        FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+    int ok = GetFileInformationByHandle(directory, &info) &&
+        (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && length && length < 4096;
+    CloseHandle(directory);
+    return ok;
+}
+
 __declspec(dllexport) void InitializeASI(void) {
     if (InterlockedCompareExchange(&started, 1, 0)) return;
-    char root[4096], hash[65], executable[4096];
+    char root[4096], resolved_root[4096], hash[65], executable[4096];
     DWORD root_length = GetEnvironmentVariableA("BEPIS_MVGL_ASSET_ROOT", root, sizeof(root));
     DWORD hash_length = GetEnvironmentVariableA("BEPIS_MVGL_EXE_SHA256", hash, sizeof(hash));
     HMODULE module = GetModuleHandleA(NULL);
@@ -135,7 +151,7 @@ __declspec(dllexport) void InitializeASI(void) {
     const char *name = strrchr(executable, '\\'); name = name ? name+1 : executable;
     if (
         root[1] != ':' || (root[2] != '\\' && root[2] != '/') ||
-        GetFileAttributesA(root) == INVALID_FILE_ATTRIBUTES || (GetFileAttributesA(root) & FILE_ATTRIBUTE_REPARSE_POINT) ||
+        !resolve_asset_root(root, resolved_root) ||
         strcmp(name, "Digimon Story Time Stranger.exe") || !hash_matches(executable, hash)) {
         report("Bepis MVGL blocked: explicit asset root and exact x64 DSTS executable hash required.\n"); return;
     }
@@ -144,7 +160,7 @@ __declspec(dllexport) void InitializeASI(void) {
     static const unsigned char size_pattern[] = {0x48,0x89,0x5c,0x24,0,0x55,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,0x48,0x8d,0xac,0x24,0,0,0,0,0x48,0x81,0xec,0xc0,0x02,0,0};
     void *read_address = find_code(module, read_pattern, "xxxxxxxxxxxxx", sizeof(read_pattern));
     void *size_address = find_code(module, size_pattern, "xxxx?xxxxxxxxxxxxxxx????xxxxxxx", sizeof(size_pattern));
-    if (!read_address || !size_address || read_address == size_address || !snapshot(root, "", 0) || !assets.count) goto blocked;
+    if (!read_address || !size_address || read_address == size_address || !snapshot(resolved_root, "", 0) || !assets.count) goto blocked;
     if (MH_Initialize() != MH_OK) goto blocked;
     if (MH_CreateHook(read_address, redirect_read, (void **)&original_read) != MH_OK ||
         MH_CreateHook(size_address, redirect_size, (void **)&original_size) != MH_OK ||

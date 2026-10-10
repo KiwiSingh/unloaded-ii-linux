@@ -59,3 +59,5 @@ startup in a bounded run. Then test one raw cosmetic replacement (e.g. FMC Eyes
 Green), compare in-game output, and prove restoring the original launch options
 and removing the experimental ASI restores vanilla behavior. No save loading is
 needed. Actual gameplay/mod success has not been established by synthetic tests.
+
+The FMC Eyes Green texture was confirmed visually in the live ARM64 SteamOS/x64 Proton game on 2026-10-10, with a matching native replacement log. BepisLoader's installer uses this as its first adapter behind game-agnostic asset-mod controls. It requires the companion checked guest publication capability and manual Steam launch setting. Full managed Reloaded-II compatibility remains unverified.

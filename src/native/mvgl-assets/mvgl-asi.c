@@ -10,17 +10,30 @@
 static MvglAssets assets;
 static LONG started;
 static LONG hooks_ready;
+static LONG first_replacement;
+static LONG first_size_override;
 typedef unsigned char (*ReadAsset)(const char *, void *, unsigned int);
 typedef intptr_t (*SizeAsset)(intptr_t, const char *, int64_t *, intptr_t, int);
 static ReadAsset original_read;
 static SizeAsset original_size;
 static unsigned char redirect_read(const char *path, void *buffer, unsigned int size) {
-    if (InterlockedCompareExchange(&hooks_ready, 0, 0) && mvgl_read(&assets, path, buffer, size)) return 1;
+    if (InterlockedCompareExchange(&hooks_ready, 0, 0) && mvgl_read(&assets, path, buffer, size)) {
+        if (!InterlockedCompareExchange(&first_replacement, 1, 0)) {
+            char message[MVGL_PATH_MAX+80];
+            snprintf(message, sizeof(message), "Bepis MVGL replaced asset: %s (%u bytes)\n", path, size);
+            OutputDebugStringA(message);
+        }
+        return 1;
+    }
     return original_read(path, buffer, size);
 }
 static intptr_t redirect_size(intptr_t a, const char *path, int64_t *size, intptr_t b, int c) {
     const MvglAsset *asset = InterlockedCompareExchange(&hooks_ready, 0, 0) ? mvgl_find(&assets, path) : NULL;
-    if (asset && size) { *size = (int64_t)asset->size; return 1; }
+    if (asset && size) {
+        *size = (int64_t)asset->size;
+        if (!InterlockedCompareExchange(&first_size_override, 1, 0)) OutputDebugStringA("Bepis MVGL replacement size reported.\n");
+        return 1;
+    }
     return original_size(a, path, size, b, c);
 }
 static void report(const char *message) { OutputDebugStringA(message); }

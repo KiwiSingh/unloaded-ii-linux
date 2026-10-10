@@ -55,3 +55,19 @@ Static: `python3 scripts/inspect-mvgl-game.py /absolute/game.exe`.
 
 See arm64-test-evidence/ for compact results and artifact hashes. No copyrighted
 game binary, private prefix or downloaded third-party binary is committed.
+
+## Live eye-texture validation — 2026-10-10
+
+The Windows x64 Digimon Story Time Stranger game launched through the installed Proton 11.0 ARM64 runtime in the existing SteamOS ARM64 VM. Unloaded-II/Reloaded files were first moved outside the game directory; the exact executable SHA-256 was checked. Only the known winmm proxy, independent native ASI and user-supplied FMC Eyes Green texture were activated for the bounded test. Verified prefix and save archives stayed on Zweidrive and its VM-backed storage; private archives are not in this repository.
+
+The actual game process contained the intended asset-root/hash variables. Its debug log recorded:
+
+```text
+Bepis MVGL asset hooks active (experimental; no gameplay attestation).
+Bepis MVGL replacement size reported.
+Bepis MVGL replaced asset: app_0/images/pch002a_E01_01.img (43852 bytes)
+```
+
+The user confirmed green eyes; the assistant also observed them in a gameplay/photo-mode close-up. This is a successful live texture-replacement test for the pinned game build, not general Reloaded-II/.NET compatibility. The bounded test stopped, its temporary loader payload was removed, and Steam Launch Options were restored to the original empty value. Old Unloaded-II files remain quarantined outside the game directory. The final hook test executable with logging also passed the isolated actual ARM64 Proton synthetic harness, exit 0 with its success marker.
+
+BepisLoader's game-agnostic asset installer uses the companion `assetModInstallV1` Steamac bridge, retains current recovery/installation safety work, and presents the manual per-game launch setting. Steam can remain open. Corresponding sources and setup limits are documented in BepisLoader 2.1.0.

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ReloadedDropIn.Cli\ReloadedDropIn.Cli.csproj" />
     <ProjectReference Include="..\ReloadedDropIn.Core\ReloadedDropIn.Core.csproj" />
     <ProjectReference Include="..\ReloadedDropIn.Adapter.Abstractions\ReloadedDropIn.Adapter.Abstractions.csproj" />
     <ProjectReference Include="..\ReloadedDropIn.Adapter.GBFR\ReloadedDropIn.Adapter.GBFR.csproj" />

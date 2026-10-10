@@ -1,0 +1,14 @@
+{
+  "exitCode": 0,
+  "timedOut": false,
+  "seconds": 5.27,
+  "livePrefixMounted": false,
+  "networkIsolated": true,
+  "freshPrefix": false,
+  "restoredVerifiedSyntheticPrefix": true,
+  "runtimeCopyModified": "runinprefix session-init only; original untouched",
+  "exeSha256": "f3cd21a7907ac21723063e2d1bd16c57309c22fd7c6133f11572ee0fcf2f508a",
+  "output": "Proton: Error while copying to \"/work/compatdata/pfx/drive_c/windows/system32/amdxcffx64.dll\": No such file or directory\n",
+  "successMarkerPresent": true,
+  "passed": true
+}

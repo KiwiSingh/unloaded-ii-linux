@@ -1,0 +1,2 @@
+# Preserve upstream MinHook source and resource formatting verbatim.
+src/native/mvgl-assets/vendor/minhook/** -whitespace

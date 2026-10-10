@@ -21,6 +21,8 @@ var commands = new Commands(registeredAdapters, context, Console.Out);
 
 return command switch
 {
+    "proton-plan" => commands.ProtonPlan(),
+    "fetch-base-mods" => commands.FetchBaseMods(),
     "detect" => commands.Detect(),
     "doctor" => commands.Doctor(),
     "list-mods" => commands.ListMods(),
@@ -46,6 +48,8 @@ static int PrintUsage()
         usage: reloaded-dropin <command> [--game-dir <path>] [options]
 
         commands:
+          proton-plan  read-only host/payload dependency plan (does not authorize launch)
+          fetch-base-mods  download Windows x64 base mods; no injection or Wine config writes
           detect       identify the game in the target directory
           doctor       report environment, mods, and readiness
           list-mods    list discovered mods in mods/

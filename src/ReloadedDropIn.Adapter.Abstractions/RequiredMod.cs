@@ -6,6 +6,9 @@ namespace ReloadedDropIn.Adapter.Abstractions;
 /// </summary>
 public sealed record RequiredMod
 {
+    /// <summary>Current upstream mod stack targets Windows x64 games, including on ARM64 Proton hosts.</summary>
+    public string PayloadRid { get; init; } = "win-x64";
+
     /// <summary>Reloaded mod ID (ModConfig.json "ModId").</summary>
     public required string Id { get; init; }
 

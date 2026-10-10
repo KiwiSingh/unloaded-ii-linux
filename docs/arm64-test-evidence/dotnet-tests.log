@@ -1,0 +1,15 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  ReloadedDropIn.Adapter.Abstractions -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Adapter.Abstractions/bin/Release/net9.0/ReloadedDropIn.Adapter.Abstractions.dll
+  ReloadedDropIn.Core -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Core/bin/Release/net9.0/ReloadedDropIn.Core.dll
+  ReloadedDropIn.Adapter.FFXVI -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Adapter.FFXVI/bin/Release/net9.0/ReloadedDropIn.Adapter.FFXVI.dll
+  ReloadedDropIn.Adapter.P5R -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Adapter.P5R/bin/Release/net9.0/ReloadedDropIn.Adapter.P5R.dll
+  ReloadedDropIn.Adapter.DSTS -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Adapter.DSTS/bin/Release/net9.0/ReloadedDropIn.Adapter.DSTS.dll
+  ReloadedDropIn.Adapter.GBFR -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Adapter.GBFR/bin/Release/net9.0/ReloadedDropIn.Adapter.GBFR.dll
+  ReloadedDropIn.Bootstrap -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Bootstrap/bin/Release/net9.0/ReloadedDropIn.Bootstrap.dll
+  ReloadedDropIn.Cli -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Cli/bin/Release/net9.0/ReloadedDropIn.Cli.dll
+  ReloadedDropIn.Tests -> /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Tests/bin/Release/net9.0/ReloadedDropIn.Tests.dll
+Test run for /Volumes/Zweidrive/unloaded-ii-linux-arm64/src/ReloadedDropIn.Tests/bin/Release/net9.0/ReloadedDropIn.Tests.dll (.NETCoreApp,Version=v9.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   144, Skipped:     0, Total:   144, Duration: 155 ms - ReloadedDropIn.Tests.dll (net9.0)

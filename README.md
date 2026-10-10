@@ -123,3 +123,14 @@ package's `README.txt` under TROUBLESHOOTING.
 
 - [docs/multi-game-next-steps.md](docs/multi-game-next-steps.md) — the multi-game architecture and what's next
 - [docs/development-plan.md](docs/development-plan.md) — original design history
+
+## ARM64 SteamOS / Proton preparation
+
+For Windows x64 Digimon Story Time Stranger in an ARM64 SteamOS VM, see
+[ARM64 Proton preparation](docs/arm64-proton.md). This adds a native Linux
+coordinator and Windows x64 payload validation; modded game launch remains
+unverified and blocked by the BepisLoader integration.
+
+An experimental [native MVGL asset-only ASI](docs/native-mvgl-assets.md) avoids
+.NET for loose texture/asset replacement. [Synthetic test results](docs/arm64-test-results.md)
+include a successful x64 hook test under ARM64 Proton; live gameplay is still unverified.

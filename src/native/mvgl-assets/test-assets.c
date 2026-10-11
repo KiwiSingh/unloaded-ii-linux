@@ -21,6 +21,8 @@ int main(void) {
     assert(mvgl_unique_match(data, 6, pattern, "xxx", 3) == SIZE_MAX);
     assert(mvgl_unique_match(data, 3, pattern, "xxx", 3) == 0);
     assert(mvgl_unique_match(data, 2, pattern, "xxx", 3) == SIZE_MAX);
+    assert(MVGL_MAX_FILE_BYTES == 128u * 1024u * 1024u);
+    assert(!mvgl_add(&store, "file-overflow", "x", MVGL_MAX_FILE_BYTES + 1ull));
     assert(MVGL_MAX_BYTES == 1024u * 1024u * 1024u);
     store.total = MVGL_MAX_BYTES - 4;
     assert(mvgl_add(&store, "boundary", "test", 4));

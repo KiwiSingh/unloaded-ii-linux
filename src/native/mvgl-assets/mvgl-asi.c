@@ -36,6 +36,34 @@ static intptr_t redirect_size(intptr_t a, const char *path, int64_t *size, intpt
     }
     return original_size(a, path, size, b, c);
 }
+// CRI memory-bank ABI; replacement buffers live in the immutable process snapshot.
+typedef void *(*LoadAudioBank)(void *, int, void *, const char *, void *, int);
+static LoadAudioBank original_audio_bank;
+static int has_audio_banks;
+static int memory_sha256(const void *bytes, unsigned int length, char hex[65]) {
+    BCRYPT_ALG_HANDLE algorithm = NULL; unsigned char digest[32];
+    if (!bytes || !length || length > (64u * 1024u * 1024u) || BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_SHA256_ALGORITHM, NULL, 0) < 0) return 0;
+    NTSTATUS status = BCryptHash(algorithm, NULL, 0, (PUCHAR)bytes, length, digest, sizeof(digest));
+    BCryptCloseAlgorithmProvider(algorithm, 0);
+    if (status < 0) return 0;
+    for (int i=0;i<32;i++) snprintf(hex+i*2,3,"%02x",digest[i]);
+    return 1;
+}
+static void *redirect_audio_bank(void *data, int length, void *binder, const char *path, void *work, int work_size) {
+    if (InterlockedCompareExchange(&hooks_ready,0,0) && length > 0) {
+        char hash[65], key[96];
+        if (memory_sha256(data,(unsigned int)length,hash)) {
+            snprintf(key,sizeof(key),"_bepis_audio/%s.acb",hash);
+            const MvglAsset *bank=mvgl_find(&assets,key);
+            if (bank) {
+                void *result=original_audio_bank(bank->bytes,(int)bank->size,NULL,NULL,NULL,0);
+                if (result) { OutputDebugStringA("Bepis audio replacement bank loaded.\n"); return result; }
+                OutputDebugStringA("Bepis audio replacement failed; using original bank.\n");
+            }
+        }
+    }
+    return original_audio_bank(data,length,binder,path,work,work_size);
+}
 static void report(const char *message) { OutputDebugStringA(message); }
 
 static int hash_matches(const char *path, const char *expected) {
@@ -165,14 +193,29 @@ __declspec(dllexport) void InitializeASI(void) {
     void *read_address = find_code(module, read_pattern, "xxxxxxxxxxxxx", sizeof(read_pattern));
     void *size_address = find_code(module, size_pattern, "xxxx?xxxxxxxxxxxxxxx????xxxxxxx", sizeof(size_pattern));
     if (!read_address || !size_address || read_address == size_address || !snapshot(resolved_root, "", 0) || !assets.count) goto blocked;
+    void *audio_address = NULL;
+    for (size_t i=0;i<assets.count;i++) if (!strncmp(assets.items[i].path,"_bepis_audio/",13)) has_audio_banks=1;
+    if (has_audio_banks) {
+        // RVA/prologue measured from the precisely pinned user game binary.
+        static const unsigned char prologue[]={0x48,0x89,0x5c,0x24,0x10,0x4c,0x89,0x44,0x24,0x18,0x55,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,0x48,0x8b,0xec,0x48,0x83,0xec,0x70,0x33,0xf6,0x4c,0x63};
+        IMAGE_DOS_HEADER *dos=(IMAGE_DOS_HEADER *)module;
+        IMAGE_NT_HEADERS64 *pe=(IMAGE_NT_HEADERS64 *)((unsigned char *)module+dos->e_lfanew);
+        if(strcmp(hash,"ff9de825a543bf874cfb7e73ed951256d3ce4e8702957afa3b26ca6487a81688") || pe->OptionalHeader.SizeOfImage<0xedff88+sizeof(prologue)) goto blocked;
+        audio_address=(unsigned char *)module+0xedff88;
+        if(memcmp(audio_address,prologue,sizeof(prologue))) goto blocked;
+    }
     if (MH_Initialize() != MH_OK) goto blocked;
+    if (audio_address && (MH_CreateHook(audio_address,redirect_audio_bank,(void **)&original_audio_bank)!=MH_OK || MH_QueueEnableHook(audio_address)!=MH_OK)) goto hook_failure;
     if (MH_CreateHook(read_address, redirect_read, (void **)&original_read) != MH_OK ||
         MH_CreateHook(size_address, redirect_size, (void **)&original_size) != MH_OK ||
         MH_QueueEnableHook(read_address) != MH_OK || MH_QueueEnableHook(size_address) != MH_OK || MH_ApplyQueued() != MH_OK) {
+        hook_failure:;
+        MH_STATUS audio_disabled = audio_address ? MH_DisableHook(audio_address) : MH_OK;
         MH_STATUS read_disabled = MH_DisableHook(read_address);
         MH_STATUS size_disabled = MH_DisableHook(size_address);
-        if ((read_disabled == MH_OK || read_disabled == MH_ERROR_DISABLED || read_disabled == MH_ERROR_NOT_CREATED) &&
+        if ((audio_disabled == MH_OK || audio_disabled == MH_ERROR_DISABLED || audio_disabled == MH_ERROR_NOT_CREATED) && (read_disabled == MH_OK || read_disabled == MH_ERROR_DISABLED || read_disabled == MH_ERROR_NOT_CREATED) &&
             (size_disabled == MH_OK || size_disabled == MH_ERROR_DISABLED || size_disabled == MH_ERROR_NOT_CREATED)) {
+            if(audio_address) MH_RemoveHook(audio_address);
             MH_RemoveHook(read_address); MH_RemoveHook(size_address); MH_Uninitialize();
         }
         // If detour removal fails, keep valid original trampolines. hooks_ready

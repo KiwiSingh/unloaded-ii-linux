@@ -1,3 +1,6 @@
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using ReloadedDropIn.Core.Platform;
 using ReloadedDropIn.Adapter.Abstractions;
 using ReloadedDropIn.Core.Configuration;
 using ReloadedDropIn.Core.Dependencies;
@@ -10,6 +13,64 @@ public sealed class Commands(
     AdapterContext context,
     TextWriter output)
 {
+    /// <summary>Read-only preparation contract. Static layout is never launch attestation.</summary>
+    public int ProtonPlan()
+    {
+        var (adapter, detection) = DetectAdapter();
+        if (adapter is null || detection?.ExecutablePath is null) return 1;
+        WindowsPayload target;
+        try { target = PayloadCompatibility.ReadGame(detection.ExecutablePath); }
+        catch (Exception ex) when (ex is IOException or BadImageFormatException)
+        {
+            output.WriteLine(JsonSerializer.Serialize(new { SchemaVersion = 1, Status = "blocked", Reason = ex.Message }));
+            return 1;
+        }
+        var supported = target == WindowsPayload.X64;
+        var scan = new ModScanner().Scan(context.ModsDirectory);
+        var resolution = new DependencyResolver().Resolve(scan.Mods);
+        output.WriteLine(JsonSerializer.Serialize(new {
+            SchemaVersion = 1,
+            Adapter = adapter.Id,
+            SteamAppIds = adapter.SteamAppIds,
+            HostArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant(),
+            CoordinatorRid = OperatingSystem.IsLinux() ? $"linux-{RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant()}" : null,
+            PayloadRid = target switch { WindowsPayload.X64 => "win-x64", WindowsPayload.X86 => "win-x86", _ => "win-arm64" },
+            Executable = detection.ExecutablePath,
+            RequiredMods = adapter.GetRequiredMods().Select(m => new { m.Id, m.UpdateRepo, m.UpdateAssetPrefix, m.PayloadRid }),
+            MissingRequiredMods = adapter.GetRequiredMods().Where(m => !scan.Mods.Any(d => d.ModId.Equals(m.Id, StringComparison.OrdinalIgnoreCase))).Select(m => m.Id),
+            MissingDependencies = resolution.MissingDependencies,
+            Status = "blocked",
+            Reason = supported ? "Windows x64 payloads required under Proton. The bridge does not attest loader hosting or injection; modded launch remains disabled." : "No supported loader stack for this Windows game architecture.",
+            CanPrepareDependencies = supported,
+            CanLaunchModded = false,
+        }, new JsonSerializerOptions { WriteIndented = true }));
+        return supported ? 0 : 1;
+    }
+
+    /// <summary>Host-native download preparation only; does not write Wine AppData or launch the game.</summary>
+    public int FetchBaseMods()
+    {
+        var (adapter, detection) = DetectAdapter();
+        if (adapter is null || detection?.ExecutablePath is null) return 1;
+        try
+        {
+            var target = PayloadCompatibility.ReadGame(detection.ExecutablePath);
+            if (target != WindowsPayload.X64) { output.WriteLine("Unsupported Windows game payload architecture."); return 1; }
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            using var feed = new ReloadedDropIn.Bootstrap.Update.GitHubReleaseFeed(Path.Combine(context.DropInDirectory, "state"));
+            var installer = new ReloadedDropIn.Bootstrap.Update.BaseModInstaller(context, feed, target);
+            foreach (var line in installer.RunAsync(adapter.GetRequiredMods(), deadline.Token).GetAwaiter().GetResult()) output.WriteLine(line);
+            var scan = new ModScanner().Scan(context.ModsDirectory);
+            var present = scan.Mods.Select(m => m.ModId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (!adapter.GetRequiredMods().All(m => present.Contains(m.Id))) return 1;
+            foreach (var mod in scan.Mods.Where(m => adapter.GetRequiredMods().Any(r => r.Id.Equals(m.ModId, StringComparison.OrdinalIgnoreCase))))
+                ReloadedDropIn.Bootstrap.Update.BaseModInstaller.ValidateInstalledPayload(mod.Directory, target);
+            return 0;
+        }
+        catch (Exception ex) when (ex is IOException or BadImageFormatException or OperationCanceledException)
+        { output.WriteLine($"Preparation failed: {ex.Message}"); return 1; }
+    }
+
     public int Detect()
     {
         var (adapter, detection) = DetectAdapter();
@@ -120,6 +181,11 @@ public sealed class Commands(
 
     public int Sync(bool dryRun)
     {
+        if (!OperatingSystem.IsWindows() && !dryRun)
+        {
+            output.WriteLine("Native host sync cannot write Windows loader paths. Use fetch-base-mods for host preparation and the Windows in-process bootstrap for sync.");
+            return 1;
+        }
         var (adapter, detection) = DetectAdapter();
         if (adapter is null)
         {

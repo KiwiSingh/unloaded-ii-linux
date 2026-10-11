@@ -1,4 +1,6 @@
 using System.Text.Json;
+using ReloadedDropIn.Core.Platform;
+using ReloadedDropIn.Core.Manifests;
 using System.Text.RegularExpressions;
 using ReloadedDropIn.Adapter.Abstractions;
 using ReloadedDropIn.Core.Filesystem;
@@ -22,7 +24,7 @@ namespace ReloadedDropIn.Bootstrap.Update;
 /// week) and can be disabled there ("AutoUpdate": false); INSTALLING a missing
 /// base mod ignores both, since nothing works until it exists.
 /// </summary>
-public sealed class BaseModInstaller(AdapterContext context, IReleaseFeed feed)
+public sealed class BaseModInstaller(AdapterContext context, IReleaseFeed feed, WindowsPayload payloadTarget = WindowsPayload.X64)
 {
     /// <summary>User-editable knobs + check timestamp, at reloaded-dropin/update.json.</summary>
     public sealed record UpdateSettings
@@ -150,6 +152,9 @@ public sealed class BaseModInstaller(AdapterContext context, IReleaseFeed feed)
     private async Task<string> UpdateOneAsync(
         RequiredMod mod, IReadOnlyDictionary<string, string> modDirectories, CancellationToken cancellationToken)
     {
+        // No fallback to host-architecture or unlabelled assets for a different game ABI.
+        if (payloadTarget != WindowsPayload.X64 || mod.PayloadRid != "win-x64")
+            return $"{mod.Id}: unsupported payload target {payloadTarget}; no download or installation performed";
         var assets = await feed.GetLatestReleaseAssetsAsync(mod.UpdateRepo!, cancellationToken).ConfigureAwait(false);
         if (assets is null)
             return $"{mod.Id}: release feed unreachable (offline?)";
@@ -172,13 +177,13 @@ public sealed class BaseModInstaller(AdapterContext context, IReleaseFeed feed)
             return $"{mod.Id}: download of {candidate.Asset.Name} failed; keeping installed version";
 
         var target = installedDirectory ?? Path.Combine(context.ModsDirectory, "_base-mods", mod.Id);
-        return InstallArchive(mod.Id, candidate.Asset.Name, payload, target, installedVersion, candidate.Version!);
+        return InstallArchive(mod.Id, candidate.Asset.Name, payload, target, installedVersion, candidate.Version!, payloadTarget);
     }
 
     /// <summary>Extract to a staging sibling, sanity-check, then swap directories —
     /// a bad or truncated archive can never destroy the working install.</summary>
     private static string InstallArchive(
-        string modId, string assetName, byte[] payload, string targetDirectory, Version? fromVersion, Version toVersion)
+        string modId, string assetName, byte[] payload, string targetDirectory, Version? fromVersion, Version toVersion, WindowsPayload target)
     {
         var staging = targetDirectory + ".update-staging";
         var retired = targetDirectory + ".update-old";
@@ -206,6 +211,8 @@ public sealed class BaseModInstaller(AdapterContext context, IReleaseFeed feed)
                     throw new InvalidDataException($"{assetName} contains ModId '{actualId}', expected '{modId}'");
             }
 
+            ValidateInstalledPayload(staging, target);
+
             if (Directory.Exists(retired))
                 Directory.Delete(retired, recursive: true);
             if (Directory.Exists(targetDirectory))
@@ -231,6 +238,32 @@ public sealed class BaseModInstaller(AdapterContext context, IReleaseFeed feed)
             catch (IOException) { /* best effort; next launch re-checks */ }
 
             return $"{modId}: update to {Fmt(toVersion)} failed ({ex.Message}); keeping installed version";
+        }
+    }
+
+    public static void ValidateInstalledPayload(string directory, WindowsPayload target)
+    {
+        var manifest = ModManifest.TryParse(File.ReadAllText(Path.Combine(directory, "ModConfig.json")), out var error)
+            ?? throw new InvalidDataException(error);
+        string Resolve(string name)
+        {
+            var root = Path.GetFullPath(directory) + Path.DirectorySeparatorChar;
+            var path = Path.GetFullPath(Path.Combine(directory, name.Replace('\\', Path.DirectorySeparatorChar)));
+            if (!path.StartsWith(root, StringComparison.Ordinal))
+                throw new InvalidDataException($"Escaping payload path: {name}");
+            return path;
+        }
+        // Reloaded prefers an existing x64 R2R image and falls back to ModDll.
+        // Release manifests can name optional R2R images absent from IL-only packages.
+        var managed = !string.IsNullOrWhiteSpace(manifest.ModR2RManagedDll64) &&
+            File.Exists(Resolve(manifest.ModR2RManagedDll64))
+                ? manifest.ModR2RManagedDll64 : manifest.ModDll;
+        foreach (var (name, native) in new[] { (managed, false), (manifest.ModNativeDll64, true) })
+        {
+            if (string.IsNullOrWhiteSpace(name)) continue;
+            var path = Resolve(name);
+            if (!File.Exists(path)) throw new InvalidDataException($"Missing payload path: {name}");
+            PayloadCompatibility.RequireLibrary(path, target, native);
         }
     }
 

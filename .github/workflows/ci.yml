@@ -8,7 +8,10 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,3 +28,23 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build -c Release -v normal
+
+      - name: Publish native Linux coordinator
+        run: ./scripts/package-linux-cli.sh ${{ matrix.runner == 'ubuntu-24.04-arm' && 'linux-arm64' || 'linux-x64' }}
+
+      - name: Exercise native coordinator
+        run: |
+          rid=${{ matrix.runner == 'ubuntu-24.04-arm' && 'linux-arm64' || 'linux-x64' }}
+          ./dist/coordinator-$rid/ReloadedDropIn.Cli list-mods --game-dir "$RUNNER_TEMP"
+
+      - name: Test native asset store with sanitizers
+        run: |
+          cc -Wall -Wextra -Werror -fsanitize=address,undefined src/native/mvgl-assets/assets.c src/native/mvgl-assets/test-assets.c -o /tmp/test-mvgl-assets
+          /tmp/test-mvgl-assets
+
+      - name: Build Windows x64 asset-only ASI
+        if: matrix.runner == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-x86-64
+          ./scripts/build-mvgl-native.sh

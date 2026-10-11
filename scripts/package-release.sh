@@ -25,6 +25,12 @@
 #
 # Requires: dotnet (~/.dotnet ok), x86_64-w64-mingw32-gcc, 7zz, unzip, curl.
 set -euo pipefail
+# An ARM64 Linux host running a Windows x64 game still needs win-x64 payloads.
+PAYLOAD_RID="${PAYLOAD_RID:-win-x64}"
+if [ "$PAYLOAD_RID" != "win-x64" ]; then
+  echo "Unsupported injected payload RID: $PAYLOAD_RID. Use package-linux-cli.sh for the host coordinator." >&2
+  exit 2
+fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export PATH="$HOME/.dotnet:$PATH"

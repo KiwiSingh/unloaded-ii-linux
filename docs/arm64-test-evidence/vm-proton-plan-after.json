@@ -1,0 +1,61 @@
+{
+  "SchemaVersion": 1,
+  "Adapter": "dsts",
+  "SteamAppIds": [
+    1984270
+  ],
+  "HostArchitecture": "arm64",
+  "CoordinatorRid": "linux-arm64",
+  "PayloadRid": "win-x64",
+  "Executable": "/home/steamos/.local/share/unloaded-arm64-port-test/game/Digimon Story Time Stranger.exe",
+  "RequiredMods": [
+    {
+      "Id": "DSTS.ModLoader",
+      "UpdateRepo": "RyoTune/DSTS.ModLoader",
+      "UpdateAssetPrefix": "DSTS.ModLoader",
+      "PayloadRid": "win-x64"
+    },
+    {
+      "Id": "MVGL.FileLoader.Reloaded",
+      "UpdateRepo": "RyoTune/MVGL.FileLoader",
+      "UpdateAssetPrefix": "MVGL.FileLoader.Reloaded",
+      "PayloadRid": "win-x64"
+    },
+    {
+      "Id": "reloaded.sharedlib.hooks",
+      "UpdateRepo": "Sewer56/Reloaded.SharedLib.Hooks.ReloadedII",
+      "UpdateAssetPrefix": "Reloaded.Hooks.ReloadedII",
+      "PayloadRid": "win-x64"
+    },
+    {
+      "Id": "Reloaded.Memory.SigScan.ReloadedII",
+      "UpdateRepo": "Reloaded-Project/Reloaded.Memory.SigScan",
+      "UpdateAssetPrefix": "Reloaded.Memory.SigScan.ReloadedII",
+      "PayloadRid": "win-x64"
+    },
+    {
+      "Id": "DSTS.RyoFramework",
+      "UpdateRepo": "RyoTune/DSTS.RyoFramework",
+      "UpdateAssetPrefix": "DSTS.RyoFramework",
+      "PayloadRid": "win-x64"
+    },
+    {
+      "Id": "Ryo.Reloaded",
+      "UpdateRepo": "RyoTune/Ryo",
+      "UpdateAssetPrefix": "Ryo.Reloaded",
+      "PayloadRid": "win-x64"
+    },
+    {
+      "Id": "SharedScans.Reloaded",
+      "UpdateRepo": "RyoTune/SharedScans",
+      "UpdateAssetPrefix": "SharedScans.Reloaded",
+      "PayloadRid": "win-x64"
+    }
+  ],
+  "MissingRequiredMods": [],
+  "MissingDependencies": [],
+  "Status": "blocked",
+  "Reason": "Windows x64 payloads required under Proton. The bridge does not attest loader hosting or injection; modded launch remains disabled.",
+  "CanPrepareDependencies": true,
+  "CanLaunchModded": false
+}

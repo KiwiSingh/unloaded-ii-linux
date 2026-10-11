@@ -54,6 +54,49 @@ public class BaseModInstallerTests : IDisposable
         return buffer.ToArray();
     }
 
+    [Fact]
+    public async Task UnsupportedGameAbiDoesNotContactReleaseFeed()
+    {
+        var feed = new FakeFeed();
+        var installer = new BaseModInstaller(Context, feed, ReloadedDropIn.Core.Platform.WindowsPayload.Arm64);
+        var log = await installer.RunAsync([UpdatableMod()], CancellationToken.None);
+        Assert.Equal(0, feed.FeedCalls);
+        Assert.Contains(log, line => line.Contains("unsupported payload target"));
+        Assert.False(Directory.Exists(Context.ModsDirectory));
+    }
+
+    [Fact]
+    public async Task MissingDeclaredPayloadPreservesInstalledMod()
+    {
+        var target = Path.Combine(Context.ModsDirectory, "_base-mods", "test.mod");
+        Directory.CreateDirectory(target);
+        File.WriteAllText(Path.Combine(target, "ModConfig.json"), """{"ModId":"test.mod","ModVersion":"1.0"}""");
+        var feed = new FakeFeed { Assets = [new ReleaseAsset("TestMod2.0.zip", "url")] };
+        feed.Downloads["url"] = ZipWithModConfig("test.mod", "2.0", ("ModConfig.json", """{"ModId":"test.mod","ModVersion":"2.0","ModNativeDll64":"missing.dll"}"""));
+        var log = await new BaseModInstaller(Context, feed).RunAsync([UpdatableMod()], CancellationToken.None);
+        Assert.Contains(log, line => line.Contains("failed"));
+        Assert.Contains("1.0", File.ReadAllText(Path.Combine(target, "ModConfig.json")));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SupportsIlFallbackAndR2rOnlyPackages(bool r2rOnly)
+    {
+        var feed = new FakeFeed { Assets = [new ReleaseAsset("TestMod2.0.zip", "url")] };
+        using var buffer = new MemoryStream();
+        using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            using (var writer = new StreamWriter(zip.CreateEntry("ModConfig.json").Open()))
+                writer.Write("""{"ModId":"test.mod","ModVersion":"2.0","ModDll":"main.dll","ModR2RManagedDll64":"x64/main.dll"}""");
+            using var dll = zip.CreateEntry(r2rOnly ? "x64/main.dll" : "main.dll").Open();
+            dll.Write(File.ReadAllBytes(typeof(ReloadedDropIn.Core.Platform.PayloadCompatibility).Assembly.Location));
+        }
+        feed.Downloads["url"] = buffer.ToArray();
+        var log = await new BaseModInstaller(Context, feed).RunAsync([UpdatableMod()], CancellationToken.None);
+        Assert.Contains(log, line => line.Contains("installed 2.0"));
+    }
+
     [Theory]
     [InlineData("gbfrelink.utility.manager2.0.1.7z", "gbfrelink.utility.manager", "2.0.1")]
     [InlineData("Reloaded.Memory.SigScan.ReloadedII1.2.14.7z", "Reloaded.Memory.SigScan.ReloadedII", "1.2.14")]

@@ -1,0 +1,15 @@
+{
+  "executableSha256": "ff9de825a543bf874cfb7e73ed951256d3ce4e8702957afa3b26ca6487a81688",
+  "payloadRid": "win-x64",
+  "matches": {
+    "read": [
+      "0x2ca090"
+    ],
+    "size": [
+      "0x2b9be0"
+    ]
+  },
+  "uniqueHookSites": true,
+  "canLaunchModded": false,
+  "evidence": "static inspection only"
+}

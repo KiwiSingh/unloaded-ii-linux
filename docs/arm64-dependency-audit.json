@@ -1,0 +1,136 @@
+{
+  "scope": "Windows x64 DSTS under ARM64 Linux Proton; host-native modloader rebuilds are not ABI compatible",
+  "repositories": [
+    {
+      "repository": "AnimatedSwine37/Reloaded.Universal.Localisation.Framework",
+      "source": "https://github.com/AnimatedSwine37/Reloaded.Universal.Localisation.Framework",
+      "defaultBranch": "master",
+      "license": "GPL-3.0"
+    },
+    {
+      "repository": "Nenkai/FaithFramework",
+      "source": "https://github.com/Nenkai/FaithFramework",
+      "defaultBranch": "master",
+      "license": "MIT"
+    },
+    {
+      "repository": "Nenkai/ff16.utility.modloader",
+      "source": "https://github.com/Nenkai/ff16.utility.modloader",
+      "defaultBranch": "master",
+      "license": "MIT"
+    },
+    {
+      "repository": "Reloaded-Project/Reloaded-II",
+      "source": "https://github.com/Reloaded-Project/Reloaded-II",
+      "defaultBranch": "master",
+      "license": "GPL-3.0"
+    },
+    {
+      "repository": "Reloaded-Project/Reloaded.Memory.SigScan",
+      "source": "https://github.com/Reloaded-Project/Reloaded.Memory.SigScan",
+      "defaultBranch": "master",
+      "license": "LGPL-3.0"
+    },
+    {
+      "repository": "Reloaded-Project/reloaded.universal.redirector",
+      "source": "https://github.com/Reloaded-Project/reloaded.universal.redirector",
+      "defaultBranch": "master",
+      "license": "GPL-3.0"
+    },
+    {
+      "repository": "RyoTune/DSTS.ModLoader",
+      "source": "https://github.com/RyoTune/DSTS.ModLoader",
+      "defaultBranch": "main",
+      "license": "MIT"
+    },
+    {
+      "repository": "RyoTune/DSTS.RyoFramework",
+      "source": "https://github.com/RyoTune/DSTS.RyoFramework",
+      "defaultBranch": "main",
+      "license": null
+    },
+    {
+      "repository": "RyoTune/MVGL.FileLoader",
+      "source": "https://github.com/RyoTune/MVGL.FileLoader",
+      "defaultBranch": "main",
+      "license": null
+    },
+    {
+      "repository": "RyoTune/Ryo",
+      "source": "https://github.com/RyoTune/Ryo",
+      "defaultBranch": "main",
+      "license": "NOASSERTION"
+    },
+    {
+      "repository": "RyoTune/SharedScans",
+      "source": "https://github.com/RyoTune/SharedScans",
+      "defaultBranch": "main",
+      "license": "GPL-3.0"
+    },
+    {
+      "repository": "Sewer56/CriFs.V2.Hook.ReloadedII",
+      "source": "https://github.com/Sewer56/CriFs.V2.Hook.ReloadedII",
+      "defaultBranch": "main",
+      "license": "LGPL-3.0"
+    },
+    {
+      "repository": "Sewer56/FileEmulationFramework",
+      "source": "https://github.com/Sewer56/FileEmulationFramework",
+      "defaultBranch": "main",
+      "license": "LGPL-3.0"
+    },
+    {
+      "repository": "Sewer56/Reloaded.SharedLib.Hooks.ReloadedII",
+      "source": "https://github.com/Sewer56/Reloaded.SharedLib.Hooks.ReloadedII",
+      "defaultBranch": "master",
+      "license": "LGPL-3.0"
+    },
+    {
+      "repository": "Sewer56/p5rpc.modloader",
+      "source": "https://github.com/Sewer56/p5rpc.modloader",
+      "defaultBranch": "master",
+      "license": "GPL-3.0"
+    },
+    {
+      "repository": "ThirteenAG/Ultimate-ASI-Loader",
+      "source": "https://github.com/ThirteenAG/Ultimate-ASI-Loader",
+      "defaultBranch": "master",
+      "license": "MIT"
+    },
+    {
+      "repository": "WistfulHopes/gbfrelink.utility.manager",
+      "source": "https://github.com/WistfulHopes/gbfrelink.utility.manager",
+      "defaultBranch": "main",
+      "license": "MIT"
+    },
+    {
+      "repository": "mjsxi/dxd12-patch-files",
+      "source": "https://github.com/mjsxi/dxd12-patch-files",
+      "defaultBranch": "main",
+      "license": "MIT"
+    }
+  ],
+  "checkedOn": "2026-10-10",
+  "metadataCaveat": "GitHub license metadata is an inventory, not a complete license review. No third-party source port or redistribution was performed.",
+  "sourceInspection": [
+    {
+      "checkout": "DSTS.ModLoader",
+      "commit": "80dbb70f9c1082b528389f8eebe40c007383f7f8",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    {
+      "checkout": "MVGL.FileLoader",
+      "commit": "50ff1d5964549e504f2449d0bf5aacb31600bb4c",
+      "licenseFiles": []
+    },
+    {
+      "checkout": "Reloaded-II",
+      "commit": "458987f26bc8d78fdc0f86b73fc0d6fd4b673d01",
+      "licenseFiles": [
+        "LICENSE.md"
+      ]
+    }
+  ]
+}

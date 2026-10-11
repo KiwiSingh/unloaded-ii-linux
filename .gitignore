@@ -44,3 +44,6 @@ vendor/Reloaded.Imgui.Hook-dx12-draft/
 
 # Separate patch repository cloned inside this working tree.
 dxd12-patch-files/
+
+# Python test bytecode
+__pycache__/

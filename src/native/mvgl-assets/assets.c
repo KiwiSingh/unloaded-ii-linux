@@ -25,8 +25,8 @@ int mvgl_normalize(const char *input, char output[MVGL_PATH_MAX]) {
 
 int mvgl_add(MvglAssets *store, const char *path, const void *bytes, size_t size) {
     char normalized[MVGL_PATH_MAX];
-    if (!store || !mvgl_normalize(path, normalized) || !bytes || !size ||
-        store->count >= MVGL_MAX_ASSETS || size > MVGL_MAX_BYTES - store->total) return 0;
+    if (!store || !mvgl_normalize(path, normalized) || !bytes || !size || size > MVGL_MAX_FILE_BYTES ||
+        store->count >= MVGL_MAX_ASSETS || store->total > MVGL_MAX_BYTES || size > MVGL_MAX_BYTES - store->total) return 0;
     for (size_t i = 0; i < store->count; i++) if (!strcmp(store->items[i].path, normalized)) return 0;
     unsigned char *copy = malloc(size);
     if (!copy) return 0;

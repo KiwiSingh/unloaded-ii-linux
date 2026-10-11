@@ -12,7 +12,7 @@ use the original game functions. Case and slash variants are normalized; `.img`
 requests may select `.dds` replacements. Copies require an exact size match and
 never exceed the supplied capacity. Files are snapshotted before either hook is
 activated so editing them mid-game cannot change the reported size versus data.
-Limits: 4096 entries, 64 MiB per file, 256 MiB total, depth 32. Duplicate normalized
+Limits: 4096 entries, 128 MiB per file, 1 GiB total, depth 32. Duplicate normalized
 paths, traversal, non-ASCII paths, reparse entries and incomplete snapshots fail.
 These limits favor predictable fail-closed behavior over general mod support.
 

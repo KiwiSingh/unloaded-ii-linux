@@ -3,7 +3,8 @@
 #include <stddef.h>
 #define MVGL_PATH_MAX 1024
 #define MVGL_MAX_ASSETS 4096
-#define MVGL_MAX_BYTES (256u * 1024u * 1024u)
+#define MVGL_MAX_FILE_BYTES (128u * 1024u * 1024u)
+#define MVGL_MAX_BYTES (1024u * 1024u * 1024u)
 typedef struct { char path[MVGL_PATH_MAX]; unsigned char *bytes; size_t size; } MvglAsset;
 typedef struct { MvglAsset *items; size_t count, total; } MvglAssets;
 int mvgl_normalize(const char *input, char output[MVGL_PATH_MAX]);

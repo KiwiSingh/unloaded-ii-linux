@@ -118,7 +118,7 @@ static int snapshot(const char *root, const char *relative, unsigned depth) {
         HANDLE file = CreateFileA(full, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (file == INVALID_HANDLE_VALUE) { ok = 0; break; }
         LARGE_INTEGER size; DWORD count = 0; unsigned char *bytes = NULL;
-        if (GetFileSizeEx(file, &size) && size.QuadPart > 0 && size.QuadPart <= 64*1024*1024 &&
+        if (GetFileSizeEx(file, &size) && size.QuadPart > 0 && size.QuadPart <= MVGL_MAX_FILE_BYTES &&
             (uint64_t)size.QuadPart <= MVGL_MAX_BYTES - assets.total) bytes = HeapAlloc(GetProcessHeap(), 0, (SIZE_T)size.QuadPart);
         if (!bytes || !ReadFile(file, bytes, (DWORD)size.QuadPart, &count, NULL) || count != size.QuadPart ||
             !mvgl_add(&assets, key, bytes, count)) ok = 0;
